@@ -1,64 +1,105 @@
 
-import sklearn
-from models import get_sequential_api_model,get_funcional_api_model,CustomModel,get_alexnet_model
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
-from enviar_model import enviar_model_x_ray
 from Configuration import get_user_input,print_Configuration
+from cv_10 import cnn_cross_validation
+import matplotlib.pyplot as plt
 
-from tensorflow.keras.preprocessing import image
 import numpy as np
 import collections
 from sklearn import metrics
-import glob
-
-img_size = 64
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 
 #Optimizer
 #op = SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
-op = 'adam' #'adam'
 
-batch_size = 62
-nb_classes = 3
-epochs = 70
+def print_chart(auc_array,acc_array,loss_array):
+    x = np.arange(1, len(auc_array) + 1) 
+
+    plt.figure(figsize=(10, 6)) 
+
+    plt.plot(x, auc_array, marker='o', linestyle='-', color='b', label='auc')
+    plt.plot(x, acc_array, marker='s', linestyle='--', color='r', label='accurcy')
+    plt.plot(x, loss_array, marker='p', linestyle=':', color='g', label='loss')
+
+    plt.xlabel('Number of CV-10')
+    plt.title('Values of AUC, accuracy, and loss for each CV-10') 
+    plt.legend()  
+
+    plt.grid(True) 
+    plt.tight_layout()  
+
+    plt.show() 
+
+def print_result(auc_array, acc_array, loss_array):
+    # Initialize variables for averages
+    medio_auc = 0
+    medio_acc = 0
+    medio_loss = 0
+    
+    # Print header for the table
+    print(f'{"Loss":<10} {"Accuracy":<10} {"AUC":<10}')
+    print('-' * 30)
+    
+    # Loop through the arrays and print values in table format
+    for auc, acc, loss in zip(auc_array, acc_array, loss_array):
+        medio_auc += auc
+        medio_acc += acc
+        medio_loss += loss
+        print(f'{loss:<10.4f} {acc:<10.4f} {auc:<10.4f}')
+    
+    # Print separator
+    print('-' * 30)
+    
+    # Print averages
+    print(f'{(medio_loss / len(loss_array)):<10.4f} {(medio_acc / len(acc_array)):<10.4f} {(medio_auc / len(auc_array)):<10.4f}')
+
+    print_chart(auc_array,acc_array,loss_array)
+
 
 if __name__ == '__main__':
     X,Y,param_config = get_user_input()
     #print_Configuration(param_config)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.20, random_state=123)
+    X, X_final_test, Y, Y_final_test = train_test_split(X, Y, test_size=0.20, random_state=123)
 
+    best_model,array_auc, array_acc, array_loss = cnn_cross_validation(X,Y, param_config)
+    print_result(array_auc, array_acc, array_loss)
 
-    #model = cnn_model_functional_API(config)
-    if param_config.model_type == 1:
-        model = get_funcional_api_model(param_config)
-    elif param_config.model_type == 2:
-        model = get_sequential_api_model(param_config)
-    elif param_config.model_type == 3:
-        model = CustomModel(param_config)
-        model.build(input_shape=(None, *param_config.input_shape))
-    elif param_config.model_type == 4:
-        model = get_alexnet_model(param_config)
+    if param_config.model_type == 5 or param_config.model_type == 6 or param_config.model_type == 7:
+        if X_final_test.shape[-1] == 1:
+            X_final_test = np.repeat(X_final_test, 3, axis=-1)
 
-    model.compile(loss='sparse_categorical_crossentropy',optimizer=op, metrics=['accuracy'])
+    #Final Evaluation
+    loss, acc = best_model.evaluate(X_final_test, Y_final_test, batch_size=param_config.batch_size)
+    print(f'final model loss: {loss:.4f} best model acc: {acc:.4f}')
 
-    model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, validation_split=0.2, verbose=2)
+    y_pred = best_model.predict(X_final_test)
+    y_pred_normalized = y_pred / np.sum(y_pred, axis=1, keepdims=True)
 
-    loss, acc = model.evaluate(X_test,Y_test,batch_size=batch_size)
-
-    """ Resultado ROC"""
-    y_pred = model.predict(X_test) 
-    roc_auc = roc_auc_score(Y_test, y_pred, multi_class='ovr')
-    print(f'AUC {roc_auc:.4f}')
+    roc_auc = roc_auc_score(Y_final_test, y_pred_normalized, multi_class='ovr')
+    print(f'Final AUC {roc_auc:.4f}')
 
     print('Predictions')
-    y_pred_int = y_pred.argmax(axis=1)
-    print(collections.Counter(y_pred_int))
+    y_pred_int = y_pred_normalized.argmax(axis=1)
+    print(collections.Counter(y_pred_int),'\n')
 
-    #print('Confusion matrix')
-    #print(metrics.confusion_matrix(Y_test,y_pred_int))
+    print('Metrics')
+    if param_config.disease_type == 1:
+        print(metrics.classification_report(Y_final_test, y_pred_int, target_names=['Normal','BACTERIA','VIRUS']))
+    elif param_config.disease_type == 2:
+        print(metrics.classification_report(Y_final_test, y_pred_int, target_names=['Glioma','Meningioma','Notumor','Pituitary']))
+    elif param_config.disease_type == 3:
+        print(metrics.classification_report(Y_final_test, y_pred_int, target_names=['Nevus','Melanoma','Seborrheic keratosis']))
 
-    #print(metrics.classification_report(Y_test, y_pred_int, target_names=['Normal','BACTERIA','VIRUS']))
+    print('Confusion matrix')
+    if param_config.disease_type == 1:
+        metrics.ConfusionMatrixDisplay(metrics.confusion_matrix(Y_final_test,y_pred_int), display_labels=['Normal','BACTERIA','VIRUS']).plot()
+    elif param_config.disease_type == 2:
+        metrics.ConfusionMatrixDisplay(metrics.confusion_matrix(Y_final_test, y_pred_int), display_labels=['Glioma','Meningioma','Notumor','Pituitary']).plot()
+    elif param_config.disease_type == 3:
+        metrics.ConfusionMatrixDisplay(metrics.confusion_matrix(Y_final_test, y_pred_int), display_labels=['Nevus','Melanoma','Seborrheic keratosis']).plot()
+    plt.show()
+
 
     #print(model.summary())
-    enviar_model_x_ray(model,img_size,roc_auc,loss,acc,batch_size,epochs,op,activacion)
+    #enviar_model_x_ray(model,img_size,roc_auc,loss,acc,batch_size,epochs,op,activacion)
