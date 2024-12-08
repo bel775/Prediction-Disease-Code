@@ -23,7 +23,12 @@ plateau = ReduceLROnPlateau(
               cooldown = 0,
               verbose = 1
           )
-model_checkpoint = ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_loss', mode='min')
+"""model_checkpoint = ModelCheckpoint(
+        'best_model.h5', 
+        save_best_only=True, 
+        monitor='val_loss', 
+        mode='min',
+        save_format='tf')"""
 
 SEED = 42
 
@@ -37,8 +42,6 @@ def train_blob_model(model, param_config):
     labels = np.random.randint(3, size = N)
     imgs = np.zeros((N, param_config.img_size, param_config.img_size))
 
-    #fill array with corresponding images
-    # the function generate_new_blob_img is imported from our generator file. In order to replicate the results of the paper, use exactly these parameters
     for i in range(N):
         if labels[i] == 0:
             x = generate_new_blob_img(ellipse=True, size=param_config.img_size,num_big_blobs=4)
@@ -63,7 +66,7 @@ def normal_train (model,X_train,Y_train,X_test, Y_test, param_config):
   #model = train_blob_model(model, param_config)
 
   model.fit(X_train, Y_train, batch_size=param_config.batch_size, epochs=param_config.epochs, 
-            validation_split=0.2,callbacks=[early_stopping, model_checkpoint], verbose=2) #callbacks=[early_stopping, model_checkpoint]
+            validation_split=0.2,callbacks=[early_stopping], verbose=2) #callbacks=[early_stopping, model_checkpoint]
 
   loss, acc = model.evaluate(X_test,Y_test,batch_size=param_config.batch_size, verbose=0)
   print(f'loss: {loss:.4f} acc: {acc:.4f}')
@@ -84,7 +87,7 @@ def normal_train (model,X_train,Y_train,X_test, Y_test, param_config):
 
 datagen = ImageDataGenerator(
         #rescale=1/255.,
-        rotation_range=0.1,
+        rotation_range=10,
         zoom_range=0.1,
         width_shift_range=0.1,
         height_shift_range=0.1,

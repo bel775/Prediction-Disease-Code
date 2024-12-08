@@ -4,7 +4,7 @@ from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 import matplotlib.pyplot as plt
 import numpy as np
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras import layers
 from tensorflow import keras
 
 class Configuration:
@@ -168,10 +168,11 @@ def print_amount(Y,disease_type):
 
 activations = {
                 "1": "relu",
-                "2": "sigmoid",
-                "3": "tanh",
-                "4": "swish",
-                "5": "gelu"
+                "2": layers.LeakyReLU(alpha=0.1),
+                "3": "sigmoid",
+                "4": "tanh",
+                "5": "swish",
+                "6": "gelu"
             }
 
 optimizations = {
@@ -278,11 +279,11 @@ def get_user_input():
             kernel_size3 = accept_digital_num("Kernel size for Layer 3 ", "3")
 
         while True:
-            activation_choice = input("Choose activation function [1] Relu [2] Sigmoid [3] Tanh [4] swish [5] gelu: ")
+            activation_choice = input("Choose activation function [1] Relu [2] LeakyReLU [3] Sigmoid [4] Tanh [5] swish [6] gelu: ")
             
             activation = activations.get(activation_choice)
             if activation is None:
-                print("Invalid choice. Please enter a valid number (1, 2, 3, 4 or 5).")
+                print("Invalid choice. Please enter a valid number (1, 2, 3, 4, 5 or 6).")
             else:
                 break
 

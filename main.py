@@ -1,6 +1,7 @@
 
 from Configuration import get_user_input,print_Configuration
 from cv_10 import cnn_cross_validation
+from send_model import send_model
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -101,5 +102,14 @@ if __name__ == '__main__':
     plt.show()
 
 
-    #print(model.summary())
-    #enviar_model_x_ray(model,img_size,roc_auc,loss,acc,batch_size,epochs,op,activacion)
+    #best_model.summary()
+    while True:
+        response = input("Want to send the model to the siteweb? (yes/no) [no]: ").strip().lower() or 'n'
+
+        if response in ['yes', 'y']:
+            send_model(best_model,param_config,roc_auc,loss,acc)
+            break
+        elif response in ['no', 'n']:
+            break
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")

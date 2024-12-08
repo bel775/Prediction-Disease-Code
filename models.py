@@ -324,7 +324,7 @@ def get_preTrained_EfficientNet(config):
     base_model.trainable = True
 
     # Freeze some layers in the base model
-    for layer in base_model.layers[:-13]:
+    for layer in base_model.layers[:10]:
         layer.trainable = False
     
     inputs = layers.Input(shape=(config.img_size, config.img_size, 3))

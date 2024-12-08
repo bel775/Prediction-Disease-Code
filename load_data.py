@@ -3,9 +3,10 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import glob
 import pandas as pd
+import os
 
-from sklearn.preprocessing import LabelEncoder
-from keras.utils import to_categorical
+#from sklearn.preprocessing import LabelEncoder
+#from keras.utils import to_categorical
 
 ####################################################
 # LOAD Chaest X-Ray Data
@@ -85,18 +86,20 @@ def load_isic_data(img_size):
   X_Unbalanced,Y_Unbalanced  = [], []
   for idx, row in data.iterrows():
     filename = f'./ISIC_Filtred/{row["image_name"]}.jpg'
-    im = image.load_img(filename, target_size=[img_size, img_size], color_mode = 'grayscale')
 
-    num = 0
-    if row['diagnosis'] == 'nevus' :
-      X.append(image.img_to_array(im))
-      Y.append(0)
-    elif row['diagnosis'] == 'melanoma':
-      X.append(image.img_to_array(im))
-      Y.append(1)
-    else:
-      X_Unbalanced.append(image.img_to_array(im))
-      Y_Unbalanced.append(2)
+    if os.path.exists(filename):
+      im = image.load_img(filename, target_size=[img_size, img_size], color_mode = 'grayscale')
+
+      num = 0
+      if row['diagnosis'] == 'nevus' :
+        X.append(image.img_to_array(im))
+        Y.append(0)
+      elif row['diagnosis'] == 'melanoma':
+        X.append(image.img_to_array(im))
+        Y.append(1)
+      else:
+        X_Unbalanced.append(image.img_to_array(im))
+        Y_Unbalanced.append(2)
 
   #input_shape = (img_rows, img_cols, 1)
   X = np.array(X)

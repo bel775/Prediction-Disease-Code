@@ -2,7 +2,7 @@ import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 imagegen = ImageDataGenerator(
-    rescale=1/255.,
+    #rescale=1/255.,
     rotation_range=20,
     width_shift_range=0.2,
     height_shift_range=0.2,
