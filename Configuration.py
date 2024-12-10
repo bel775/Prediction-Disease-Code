@@ -112,6 +112,10 @@ def show_chart(values, disease_type):
         plt.title('Classification chart')
         plt.show()
 
+        save_path = "Chart.png"
+        plt.savefig(save_path)  # Save chart if interactive display fails
+        print(f"Chart saved as {save_path}")
+
 def print_amount(Y,disease_type):
     if disease_type == '1':
         normal = 0
@@ -168,7 +172,7 @@ def print_amount(Y,disease_type):
 
 activations = {
                 "1": "relu",
-                "2": layers.LeakyReLU(alpha=0.1),
+                "2": layers.LeakyReLU(negative_slope=0.1),
                 "3": "sigmoid",
                 "4": "tanh",
                 "5": "swish",

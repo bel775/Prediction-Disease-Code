@@ -6,7 +6,7 @@ from tensorflow import keras
 
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import to_categorical
-from blob_generator import generate_new_blob_img
+#from blob_generator import generate_new_blob_img
 
 early_stopping = EarlyStopping(
                     monitor='val_loss',
@@ -35,35 +35,7 @@ SEED = 42
 #----------------------------------------------------------------
 ## Normal Train
 #----------------------------------------------------------------
-def train_blob_model(model, param_config):
-    N = 6000
-    big_blob_size = 8
-    big_blob_range = 2
-    labels = np.random.randint(3, size = N)
-    imgs = np.zeros((N, param_config.img_size, param_config.img_size))
-
-    for i in range(N):
-        if labels[i] == 0:
-            x = generate_new_blob_img(ellipse=True, size=param_config.img_size,num_big_blobs=4)
-        elif labels[i] == 1:
-            x = generate_new_blob_img(ellipse = False, size = param_config.img_size, num_big_blobs=4)
-        elif labels[i] == 2:
-            x = generate_new_blob_img(ellipse= False, size = param_config.img_size, num_big_blobs=0)
-        imgs[i,:,:] = x
-
-    X_blob = np.expand_dims(imgs, -1)
-    #X_blob = np.transpose(X_blob, (2,1,0,3))
-    Y_blob = labels
-
-    print(Y_blob.shape)
-    print(X_blob.shape)
-    model.fit(X_blob, Y_blob, batch_size=param_config.batch_size, epochs=param_config.epochs, validation_split=0.2)
-
-    return model
-
 def normal_train (model,X_train,Y_train,X_test, Y_test, param_config):
-
-  #model = train_blob_model(model, param_config)
 
   model.fit(X_train, Y_train, batch_size=param_config.batch_size, epochs=param_config.epochs, 
             validation_split=0.2,callbacks=[early_stopping], verbose=2) #callbacks=[early_stopping, model_checkpoint]

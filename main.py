@@ -3,7 +3,7 @@ from Configuration import get_user_input,print_Configuration
 from cv_10 import cnn_cross_validation
 from send_model import send_model
 import matplotlib.pyplot as plt
-
+import os
 import numpy as np
 import collections
 from sklearn import metrics
@@ -12,24 +12,28 @@ from sklearn.metrics import roc_auc_score
 
 #Optimizer
 #op = SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
-
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 def print_chart(auc_array,acc_array,loss_array):
-    x = np.arange(1, len(auc_array) + 1) 
+    x = np.arange(1, len(auc_array) + 1)  # X-axis values
 
     plt.figure(figsize=(10, 6)) 
 
-    plt.plot(x, auc_array, marker='o', linestyle='-', color='b', label='auc')
-    plt.plot(x, acc_array, marker='s', linestyle='--', color='r', label='accurcy')
-    plt.plot(x, loss_array, marker='p', linestyle=':', color='g', label='loss')
+    # Plotting AUC, accuracy, and loss
+    plt.plot(x, auc_array, marker='o', linestyle='-', color='b', label='AUC')
+    plt.plot(x, acc_array, marker='s', linestyle='--', color='r', label='Accuracy')
+    plt.plot(x, loss_array, marker='p', linestyle=':', color='g', label='Loss')
 
-    plt.xlabel('Number of CV-10')
-    plt.title('Values of AUC, accuracy, and loss for each CV-10') 
-    plt.legend()  
+    plt.xlabel('Number of CV-10')  # X-axis label
+    plt.ylabel('Metrics')         # Y-axis label
+    plt.title('Values of AUC, Accuracy, and Loss for each CV-10')  # Title
+    plt.legend()                  # Legend
+    plt.grid(True)                # Grid for readability
+    plt.tight_layout()            # Adjust layout to prevent overlap
+    plt.show()
 
-    plt.grid(True) 
-    plt.tight_layout()  
-
-    plt.show() 
+    save_path = "Graph.png"
+    plt.savefig(save_path)  # Save chart if interactive display fails
+    print(f"Chart saved as {save_path}")
 
 def print_result(auc_array, acc_array, loss_array):
     # Initialize variables for averages
@@ -101,6 +105,9 @@ if __name__ == '__main__':
         metrics.ConfusionMatrixDisplay(metrics.confusion_matrix(Y_final_test, y_pred_int), display_labels=['Nevus','Melanoma','Seborrheic keratosis']).plot()
     plt.show()
 
+    save_path = "ConfisonMatrix.png"
+    plt.savefig(save_path)  # Save chart if interactive display fails
+    print(f"Chart saved as {save_path}")
 
     #best_model.summary()
     while True:

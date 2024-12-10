@@ -1,13 +1,14 @@
 import requests
 import base64
 import json
+import os
 from SecuritySys import cargar_clave_publica, cifrar_datos
 
 #from tensorflow.keras.models import model_from_json
 import numpy as np
 
 public_key = cargar_clave_publica("public_key.pem")
-api_key = "6609c948-c626-4ab4-8e09-f98420bdf2fd"
+api_key = os.environ.get('API_KEY')
 
 def send_model(model,param_config,roc_auc,loss,acc):
 
@@ -77,7 +78,7 @@ def send_model(model,param_config,roc_auc,loss,acc):
         "API-Key": api_key 
     }
 
-    url = "http://localhost:2024/get_new_model"
+    url = "http://localhost:5000/get_new_model"
 
     try:
 
